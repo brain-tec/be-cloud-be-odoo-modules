@@ -28,7 +28,7 @@
             Building Sites
             
         -->
-    
+        
         <!-- Add link to building site on Project form view -->
         <record id="view_project_form_construction" model="ir.ui.view">
             <field name="name">view.project.project.form.construction</field>
@@ -42,6 +42,30 @@
             </field>
         </record>
         
+        <!-- Add asset count and link to kanban -->
+        
+        <!-- Add link to building asset on Sale Order form view -->
+        <!--<record id="view_project_kanban_construction" model="ir.ui.view">
+            <field name="name">project.project.kanban.construction</field>
+            <field name="model">construction.building_site</field>
+            <field name="inherit_id" ref="project.view_project_kanban" />
+            <field eval="18" name="priority" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='task_count']" position="after">
+                    <field name="asset_count"/>
+                </xpath>
+                
+                <xpath expr="//div[@class='o_project_kanban_boxes']" position="inside">
+                    <div t-if="record.asset_count.raw_value" class="o_project_kanban_box">
+                        <a name="view_building_asset_tree" type="object">
+                            <span class="o_value"><t t-esc="record.asset_count.value"/></span>
+                            <span class="o_label">Assets</span>
+                        </a>
+                    </div>   
+                </xpath>
+            </field>
+        </record>-->
+        
         <record id="view_building_site_tree" model="ir.ui.view">
             <field name="name">Building Site Tree</field>
             <field name="model">construction.building_site</field>
@@ -50,7 +74,6 @@
                     <field name="name" string="Project Name"/>
                     <field name="type"/>
                     <field name="construction_state"/>
-                    <field name="state"/>
                 </tree>
             </field>
         </record>
@@ -64,13 +87,13 @@
                         <field name="construction_state" widget="statusbar" statusbar_visible="development,onsale,construction" />
                     </header>
                     <sheet>
-                        <div class="oe_title">
+                        <div class="o_title">
                             <h2>
                                 <field name="name" />
                             </h2>
                         </div>
                         <field name="task_count" invisible="1" />
-                        <div class="oe_button_box" name="button_box">
+                        <div class="o_button_box" name="button_box">
                             <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-trello">
                                 <div class="o_stat_info">
                                     <field name="task_count" class="o_stat_info"/>
