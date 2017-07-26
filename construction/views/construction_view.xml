@@ -23,6 +23,8 @@
 <openerp>
     <data>
         
+        <menuitem id="menu_construction" name="Construction" parent="project.menu_main_pm" sequence="10"/>
+        
         <!--
         
             Building Sites
@@ -83,9 +85,6 @@
             <field name="model">construction.building_site</field>
             <field name="arch" type="xml">
                 <form string="Building Site">
-                    <header>
-                        <field name="construction_state" widget="statusbar" statusbar_visible="development,onsale,construction" />
-                    </header>
                     <sheet>
                         <div class="o_title">
                             <h2>
@@ -166,7 +165,7 @@
             </field>
         </record>
         
-        <menuitem action="open_view_building_site_all_config" id="menu_building_projects_config" name="Building Sites" parent="project.menu_project_config" sequence="15"/>
+        <menuitem action="open_view_building_site_all_config" id="menu_building_projects_config" name="Building Sites" parent="construction.menu_construction" sequence="15"/>
         
         <!--
         
@@ -182,7 +181,6 @@
                     <field name="site_id"/>
                     <field name="name"/>
                     <field name="type"/>
-                    <field name="confirmed_lead_id"/>
                     <field name="state"/>
                 </tree>
             </field>
@@ -193,9 +191,6 @@
             <field name="model">construction.building_asset</field>
             <field name="arch" type="xml">
                 <form string="Building Asset">
-                    <header>
-                        <field name="state" widget="statusbar" statusbar_visible="development,onsale,proposal,sold" />
-                    </header>
                     <sheet>
                         <div class="oe_title">
                             <h2>
@@ -203,7 +198,10 @@
                             </h2>
                         </div>
                         <group col="2">
+                            <field name="title" class="oe_edit_only"/>
+                            <field name="partner_id" />
                             <field name="type" />
+                            <field name="state"/>
                             <field name="confirmed_lead_id" />
                         </group>
                         <notebook>
@@ -216,6 +214,18 @@
                                         <field name="amount_total" sum="Total Tax Included" widget="monetary"/>
                                         <field name="state"/>
                                         <field name="invoice_status"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Invoices">
+                                <field name="invoice_ids" nolabel="1" readonly="1">
+                                    <tree string="Invoices" editable="false">
+                                        <field name="number"/>
+                                        <field name="date_invoice"/>
+                                        <field name="amount_untaxed" string="Untaxed" sum="Untaxed"/>
+                                        <field name="amount_total" string="Total" sum="Total"/>
+                                        <field name="residual"  string="Due" sum="Total Due"/>
+                                        <field name="state"/>
                                     </tree>
                                 </field>
                             </page>
@@ -253,7 +263,7 @@
             </field>
         </record>
         
-        <menuitem action="open_view_building_asset_all_config" id="menu_building_assets_config" name="Building Assets" parent="project.menu_project_config" sequence="20"/>
+        <menuitem action="open_view_building_asset_all_config" id="menu_building_assets_config" name="Building Assets" parent="construction.menu_construction" sequence="25"/>
         
         
         <!--
@@ -262,6 +272,28 @@
         
         -->
         
+        <!-- Add link to building asset on Sale Order tree view -->
+        <record id="view_quotation_tree_construction" model="ir.ui.view">
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_quotation_tree"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="building_asset_id"/>
+                </field>
+            </field>
+        </record>
+        
+        <!-- Add link to building asset on Sale Order tree view -->
+        <record id="view_order_tree_construction" model="ir.ui.view">
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_tree"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="building_asset_id"/>
+                </field>
+            </field>
+        </record>
+        
         <!-- Add link to building asset on Sale Order form view -->
         <record id="view_sale_order_form_construction" model="ir.ui.view">
             <field name="name">view.sale.order.form.construction</field>
@@ -269,13 +301,38 @@
             <field name="inherit_id" ref="sale.view_order_form" />
             <field eval="18" name="priority" />
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='project_id']" position="after">
-                    <field name='building_asset_id' />
+                <xpath expr="//field[@name='confirmation_date']" position="after">
+                    <field name='building_asset_id' options="{'no_create': True}" />
                 </xpath>
             </field>
         </record>
         
-        <!-- Add link to building asset on Sale Order form view -->
+        <!-- Add link to building asset on Invoice tree view  -->
+        <record id="invoice_tree_construction" model="ir.ui.view">
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_tree"/>
+            <field eval="20" name="priority" />
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="building_asset_id"/>
+                </field>
+            </field>
+        </record>
+        
+        <!-- Add link to building asset on Invoice form view -->
+        <record id="invoice_form_construction" model="ir.ui.view">
+            <field name="name">account.invoice.form.construction</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form" />
+            <field eval="18" name="priority" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='date_invoice']" position="after">
+                    <field name='building_asset_id' options="{'no_create': True}" />
+                </xpath>
+            </field>
+        </record>
+        
+        <!-- Add link to building asset on CRM Lead form view -->
         <record id="view_crm_lead_form_construction" model="ir.ui.view">
             <field name="name">view.crm.lead.form.construction</field>
             <field name="model">crm.lead</field>
@@ -283,10 +340,37 @@
             <field eval="18" name="priority" />
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='team_id']" position="after">
-                    <field name='building_asset_id' />
+                    <field name='building_asset_id' options="{'no_create': True}" />
                 </xpath>
             </field>
         </record>
+        
+        <!-- Add matricule to Partner form view -->
+        <record id="res_partner_construction" model="ir.ui.view">
+            <field name="name">res.partner.form.inherit.construction</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='function']" position="before">
+                    <field name='matricule' />
+                </xpath>
+            </field>
+        </record>
+        
+        <!-- Add asset id and address to invoice -->
+        <template id="report_invoice_document_inherit_construction" inherit_id="account.report_invoice_document">
+            <xpath expr="//p[@t-if='o.payment_term_id']" position="after">
+                <t t-if="o.building_asset_id">
+                <p>
+                    Concerne le chantier situé : 
+                </p>
+                <div name="invoice_address" class="col-xs-5 col-xs-offset-1">
+                    <address t-field="o.building_asset_id.site_id.address_id"
+                        t-options='{"widget": "contact", "fields": ["address"], "no_marker": True}' />
+                </div>
+                </t>
+            </xpath>
+        </template>
         
     </data>
 </openerp>

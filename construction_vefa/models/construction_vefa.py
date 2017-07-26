@@ -20,37 +20,39 @@
 ##############################################################################
 import logging
 
-from openerp import api, fields, models, _
-from openerp.exceptions import UserError
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
+class BuildingAsset(models.Model):
+    '''Building Asset'''
+    _inherit = 'construction.building_asset'
+    
+    is_vefa =fields.Boolean(string="Is VEFA", default=False)
+    
+    vefa_bank_account_id = fields.Many2one('res.partner.bank', string="VEFA Bank Account", ondelete='restrict', copy=False)
+    vefa_bank_acc_number = fields.Char(related='vefa_bank_account_id.acc_number')
+    vefa_bank_id = fields.Many2one('res.bank', related='vefa_bank_account_id.bank_id')
+
 class SaleOrder(models.Model):
     '''Sale Order'''
-    _inherit = 'sale.order'
+    _inherit = "sale.order"
     
-    chantier_id = fields.Many2one('sale_order_construction.chantier', string='Chantier', ondelete='set null')
+    is_vefa =fields.Boolean(string="Is VEFA")
+    
+    @api.onchange('building_asset_id')
+    def update_building_asset_id(self):
+        self.is_vefa = self.building_asset_id.is_vefa
     
     @api.multi
     def _prepare_invoice(self):
-        """
-        Add chantier adress to invoice
-        """
         invoice_vals = super(SaleOrder, self)._prepare_invoice()
-        invoice_vals['chantier_id'] = self.chantier_id
+        invoice_vals['is_vefa'] = self.is_vefa
         return invoice_vals
-    
+
 class Invoice(models.Model):
     '''Invoice'''
     _inherit = 'account.invoice'
     
-    chantier_id = fields.Many2one('sale_order_construction.chantier', string='Chantier', ondelete='set null')
-    
-class Chantier(models.Model):
-    '''Chantier'''
-    _name = 'sale_order_construction.chantier'
-    _description = 'Chantier'
-    
-    name = fields.Char(string='Nom du projet')
-    address_id = fields.Many2one('res.partner', string='Addresse du chantier', domain="[('type', '=', 'delivery')]")
-    notes = fields.Text(string='Notes')
+    is_vefa =fields.Boolean(string="Is VEFA")

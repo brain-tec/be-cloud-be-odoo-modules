@@ -83,7 +83,17 @@ class BuildingAsset(models.Model):
     _name = 'construction.building_asset'
     _description = 'Building Asset'
     
-    name = fields.Char(string="Name")
+    title = fields.Char(string="Title")
+    
+    name = fields.Char(string="Name", compute='_compute_name', store=True)
+    
+    @api.one
+    @api.depends('title','partner_id.name')
+    def _compute_name(self):
+        if self.partner_id :
+            self.name = "%s - %s" % (self.title, self.partner_id.name)
+        else:
+            self.name = self.title
     
     state = fields.Selection([
             ('development', 'In development'),
@@ -97,19 +107,30 @@ class BuildingAsset(models.Model):
             ('duplex', 'Duplex'),
             ('house', 'House'),
             ('contiguous', 'Contiguous House'),
-            ('prking', 'Parking'),
+            ('parking', 'Parking'),
         ], string='Type of asset', required=True, help="")
     
     site_id = fields.Many2one('construction.building_site', string='Building Site')
     
+    partner_id = fields.Many2one('res.partner', string='Customer', ondelete='restrict', help="Customer for this asset.")
+    
     confirmed_lead_id = fields.Many2one('crm.lead', string='Confirmed Lead')
     candidate_lead_ids = fields.One2many('crm.lead', 'building_asset_id', string='Candidate Leads', domain=['|',('active','=',True),('active','=',False)])
-    sale_order_ids = fields.One2many('sale.order', 'building_asset_id', string="Sale Orders")
+    
+    @api.onchange('confirmed_lead_id')
+    def update_confirmed_lead_id(self):
+        self.partner_id = self.confirmed_lead_id.partner_id
+        self.state = 'sold'
+    
+    sale_order_ids = fields.One2many('sale.order', 'building_asset_id', string="Sale Orders", readonly=True)
+    invoice_ids = fields.One2many('account.invoice','building_asset_id', string="Invoices", readonly=True) 
     
 class SaleOrder(models.Model):
+    '''Sale Order'''
     _inherit = "sale.order"
     
-    building_asset_id = fields.Many2one('construction.building_asset', string='Building Asset', ondelete='set null')
+    building_site_id = fields.Many2one('construction.building_site', string='Building Site', related="building_asset_id.site_id",store=True)
+    building_asset_id = fields.Many2one('construction.building_asset', string='Building Asset', ondelete='restrict')
     
     @api.onchange('state')
     def update_asset_state(self):
@@ -120,14 +141,43 @@ class SaleOrder(models.Model):
             self.building_asset_id.state = 'sold'
             self.confirmed_lead_id.id = self.opportunity_id.id
             
+    @api.multi
+    def _prepare_invoice(self):
+        invoice_vals = super(SaleOrder, self)._prepare_invoice()
+        invoice_vals['building_asset_id'] = self.building_asset_id.id or False
+        return invoice_vals
+            
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    @api.multi
+    def _prepare_invoice_line(self, qty):
+        res = super(SaleOrderLine, self)._prepare_invoice_line(qty)
+        if self.order_id.building_site_id :
+            res.update({'account_analytic_id': self.order_id.building_site_id.analytic_account_id.id})
+        return res
+            
 class CrmLean(models.Model):
+    '''CRM Lead'''
     _inherit = "crm.lead"
     
-    building_asset_id = fields.Many2one('construction.building_asset', string='Building Asset', ondelete='set null')
     building_site_id = fields.Many2one('construction.building_site', string='Building Site', related="building_asset_id.site_id",store=True)
+    building_asset_id = fields.Many2one('construction.building_asset', string='Building Asset', ondelete='restrict')
+    
+    @api.multi
+    def _convert_opportunity_data(self, customer, team_id=False):
+        res = super(CrmLean, self)._convert_opportunity_data(self, customer, team_id)
+        res['building_asset_id'] = self.building_asset_id.id or False
     
 class Invoice(models.Model):
     '''Invoice'''
     _inherit = 'account.invoice'
     
-    building_asset_id = fields.Many2one('construction.building_asset', string='Building Asset', ondelete='set null')
+    building_site_id = fields.Many2one('construction.building_site', string='Building Site', related="building_asset_id.site_id",store=True)
+    building_asset_id = fields.Many2one('construction.building_asset', string='Building Asset', ondelete='restrict')
+    
+class Partner(models.Model):
+    '''Partner'''
+    _inherit = 'res.partner'
+    
+    matricule = fields.Char(string="Matricule")
