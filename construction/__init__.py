@@ -19,24 +19,4 @@
 #
 ##############################################################################
 
-{
-    'name': 'Voucher Analytics Plan',
-    'version': '1.0',
-    'category': 'Tools',
-    'description': """
-Add support for several analytic plans on vouchers.
-    """,
-    'author': "be-cloud.be (Jerome Sonnet)",
-    'website': 'http://www.be-cloud.be',
-    'license': 'AGPL-3',
-    'depends': [
-        'account_analytic_plans',
-        'account_voucher',
-    ],
-    'data': [
-        'view/account_voucher_analytic_plans_view.xml',
-    ],
-    'qweb': [
-    ],
-    "installable": False,
-}
+import models

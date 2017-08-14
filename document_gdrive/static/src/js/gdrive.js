@@ -23,11 +23,7 @@ odoo.define('document_gdrive.menu_item', function(require) {
             this._super.apply(this, arguments);
             odoo.gdrive = {};
             try {
-<<<<<<< HEAD
-                gapi.load('auth', {
-=======
                 gapi.load('auth2', {
->>>>>>> 0aede0c87090f0baaa12ff691e310ef541d8981f
                     'callback': this.onAuthApiLoad
                 });
                 gapi.load('picker', {
@@ -39,26 +35,15 @@ odoo.define('document_gdrive.menu_item', function(require) {
             catch(err) {
                 console.log(err);
             }
-<<<<<<< HEAD
-
-        },
-        onAuthApiLoad: function() {
-            //odoo.gdrive.oauthToken = utils.get_cookie('odoo.gdrive.oauthToken');
-=======
         },
         onAuthApiLoad: function() {
             odoo.gdrive.oauthToken = readGdriveTokenCookie();
->>>>>>> 0aede0c87090f0baaa12ff691e310ef541d8981f
             if (!odoo.gdrive.oauthToken) {
                 var P = new Model('ir.config_parameter');
                 P.call('get_param', ['document.gdrive.client.id']).then(function(id) {
                     if (id) {
                         var clientId = id;
-<<<<<<< HEAD
-                        window.gapi.auth.authorize({
-=======
                         window.gapi.auth2.authorize({
->>>>>>> 0aede0c87090f0baaa12ff691e310ef541d8981f
                                 'client_id': clientId,
                                 'scope': scope,
                                 'immediate': true,
@@ -67,29 +52,19 @@ odoo.define('document_gdrive.menu_item', function(require) {
                             function(authResult) {
                                 if (authResult && !authResult.error) {
                                     odoo.gdrive.oauthToken = authResult.access_token
-<<<<<<< HEAD
-                                    //utils.set_cookie('odoo.gdrive.oauthToken',odoo.gdrive.oauthToken,24*60*60*365);
-                                }
-                                else {
-                                    gapi.auth.authorize({
-=======
                                     odoo.gdrive.idToken = authResult.id_token;
                                     //utils.set_cookie('odoo.gdrive.oauthToken',odoo.gdrive.oauthToken,24*60*60*365);
                                     saveGdriveTokenCookie(odoo.gdrive.oauthToken);
                                 }
                                 else {
                                     gapi.auth2.authorize({
->>>>>>> 0aede0c87090f0baaa12ff691e310ef541d8981f
                                         client_id: clientId,
                                         scope: scope,
                                         immediate: false
                                     }, function(authResult) {
                                         if (authResult && !authResult.error) {
                                             odoo.gdrive.oauthToken = authResult.access_token;
-<<<<<<< HEAD
-=======
                                             saveGdriveTokenCookie(odoo.gdrive.oauthToken);
->>>>>>> 0aede0c87090f0baaa12ff691e310ef541d8981f
                                             //utils.set_cookie('odoo.gdrive.oauthToken',odoo.gdrive.oauthToken,24*60*60*365);
                                         }
                                         else {

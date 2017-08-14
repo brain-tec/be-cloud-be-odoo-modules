@@ -19,4 +19,5 @@
 #
 ##############################################################################
 
-import account_bank_statement_bulk_import_wizard
+import models
+import report

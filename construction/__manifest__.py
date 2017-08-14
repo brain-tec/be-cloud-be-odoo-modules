@@ -24,20 +24,24 @@
 
 
 {
-    'name': 'Financial Report Enhancemenet',
-    'version': '1.1',
-    'category': 'Tools',
+    'name': 'Construction Projects',
+    'version': '0.1',
+    'category': 'Sales',
     'description': """
-    Fix Financial Reporting
+    Manage construction projects
     """,
     "author": "be-cloud.be (Jerome Sonnet)",
     "website": "http://www.be-cloud.be",
-    'depends': ['account'],
+    'depends': ['sale','crm','project'],
     'init_xml': [],
     'data': [
-        'financial_reporting_enhancement.xml',
+        'views/construction_view.xml',
+        'security/ir.model.access.csv',
+        
     ],
-    'installable': False,
+    'installable': True,
     'active': True,
+    'auto_install': False,
+    'application': True,
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

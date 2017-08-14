@@ -18,5 +18,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+{
+    'name': 'Bulk Import Bank Statement',
+    'category' : 'Accounting & Finance',
+    'version': '0.1',
+    'author': 'be-cloud.be (Jerome Sonnet)',
+    'description' : """
+Module to bulk import bank statements.
+======================================
 
-import financial_reporting_enhancement
+This module allows you to import a set of statement files in Odoo at once.
+
+    """,
+    'data': [
+        'views/journal_dashboard_view.xml',
+        'wizard/account_bank_statement_bulk_import_wizard.xml'
+    ],
+    'depends': ['account_bank_statement_import'],
+    'demo': [],
+    'auto_install': True,
+    'installable': True,
+}
